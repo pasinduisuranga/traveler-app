@@ -24,6 +24,13 @@ import AdvancedAnalytics from './components/provider/AdvancedAnalytics';
 import MessagingCenter from './components/provider/MessagingCenter';
 
 function App() {
+  // Debug mode for Chrome troubleshooting
+  const debugMode = window.location.search.includes('debug=true');
+  
+  if (debugMode) {
+    return <ChromeDebug />;
+  }
+  
   const [theme, setTheme] = useState('eco-green');
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState('traveler');

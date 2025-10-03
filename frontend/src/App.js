@@ -62,7 +62,33 @@ function App() {
 
   // If new interface is selected, render the new App
   if (useNewInterface) {
-    return <AppNew />;
+    return (
+      <div>
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 10000,
+          background: 'linear-gradient(135deg, #4CAF50, #45a049)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          border: 'none',
+          transition: 'all 0.3s ease'
+        }} 
+        onClick={() => handleInterfaceChoice('old')}
+        onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+        onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+        >
+          🔄 Switch to Classic Interface
+        </div>
+        <AppNew />
+      </div>
+    );
   }
 
   // Original interface below
@@ -93,6 +119,28 @@ function App() {
   return (
     <Router>
       <div className="App">
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 10000,
+          background: 'linear-gradient(135deg, #FF6B6B, #4ECDC4)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          cursor: 'pointer',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          border: 'none',
+          transition: 'all 0.3s ease'
+        }} 
+        onClick={() => handleInterfaceChoice('new')}
+        onMouseOver={(e) => e.target.style.transform = 'scale(1.05)'}
+        onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+        >
+          🚀 Try New Interface
+        </div>
         <header className="app-header">
           <div className="header-content">
             <Link to="/" className="logo">

@@ -110,7 +110,7 @@ const PlanTrip = () => {
     });
   };
 
-  const calculateImpact = () => {
+  const calculateImpact = useCallback(() => {
     const selectedExperiences = tripPlan.experiences;
     const totalCarbonOffset = selectedExperiences.reduce((sum, exp) => sum + exp.carbonOffset, 0);
     const totalCost = selectedExperiences.reduce((sum, exp) => sum + exp.price, 0);
@@ -128,7 +128,7 @@ const PlanTrip = () => {
       localEconomySupport,
       sustainabilityScore: avgSustainability * 20 // Convert to 100 scale
     });
-  };
+  }, [tripPlan.experiences, tripPlan.travelers]);
 
   React.useEffect(() => {
     calculateImpact();

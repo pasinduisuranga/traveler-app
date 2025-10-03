@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            color: #2c3e50;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .green-button {
+            background: #27ae60;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .green-button:hover {
+            background: #229954;
+        }
+        .status {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌿 Chrome Browser Test</h1>
+        <div class="status">
+            <h2>✅ Chrome Compatibility Test</h2>
+            <p>If you can see this page with green styling, Chrome is working correctly!</p>
+        </div>
+        
+        <button class="green-button" onclick="testReactApp()">
+            🚀 Test React App
+        </button>
+        
+        <button class="green-button" onclick="openReactApp()">
+            🌱 Open React App
+        </button>
+        
+        <div id="test-results" style="margin-top: 20px;">
+            <h3>Test Results:</h3>
+            <p id="browser-info"></p>
+            <p id="react-test"></p>
+        </div>
+    </div>
+
+    <script>
+        // Display browser information
+        document.getElementById('browser-info').innerHTML = 
+            'Browser: ' + navigator.userAgent;
+        
+        function testReactApp() {
+            fetch('http://localhost:3000')
+                .then(response => {
+                    if (response.ok) {
+                        document.getElementById('react-test').innerHTML = 
+                            '✅ React app is responding on port 3000';
+                        document.getElementById('react-test').style.color = '#27ae60';
+                    } else {
+                        document.getElementById('react-test').innerHTML = 
+                            '❌ React app responded with error: ' + response.status;
+                        document.getElementById('react-test').style.color = '#e74c3c';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('react-test').innerHTML = 
+                        '❌ Cannot connect to React app: ' + error.message;
+                    document.getElementById('react-test').style.color = '#e74c3c';
+                });
+        }
+        
+        function openReactApp() {
+            window.open('http://localhost:3000', '_blank');
+        }
+        
+        // Auto-test on load
+        window.onload = function() {
+            testReactApp();
+        };
+    </script>
+</body>
+</html>

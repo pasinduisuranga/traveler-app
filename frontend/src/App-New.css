@@ -103,6 +103,37 @@
   --info-color: #2980b9;
 }
 
+/* New Enhanced Green Eco Theme */
+.eco-green {
+  --primary-color: #27ae60;
+  --primary-hover: #229954;
+  --primary-light: #82e0aa;
+  --secondary-color: #2ecc71;
+  --accent-color: #f1c40f;
+  --accent-hover: #f4d03f;
+  
+  --background-primary: #ffffff;
+  --background-secondary: #ffffff;
+  --background-tertiary: #f8f9fa;
+  --app-background: #ffffff;
+  
+  --text-primary: #2c3e50;
+  --text-secondary: #5d6d7e;
+  --text-muted: #85929e;
+  --text-white: #ffffff;
+  
+  --border-color: #e0e0e0;
+  --border-light: #f0f0f0;
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.16);
+  
+  --success-color: #27ae60;
+  --warning-color: #f39c12;
+  --danger-color: #e74c3c;
+  --info-color: #16a085;
+}
+
 /* App Layout */
 .app-layout {
   display: flex;

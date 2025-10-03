@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import './App-New.css';
 import './components/components-new.css';
 
+// Debug Component
+import ChromeDebug from './components/ChromeDebug';
+
 // New Components
 import Sidebar from './components/layout/Sidebar';
 import TopNavigation from './components/layout/TopNavigation';
@@ -21,7 +24,7 @@ import AdvancedAnalytics from './components/provider/AdvancedAnalytics';
 import MessagingCenter from './components/provider/MessagingCenter';
 
 function App() {
-  const [theme, setTheme] = useState('eco-modern');
+  const [theme, setTheme] = useState('eco-green');
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState('traveler');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -34,7 +37,7 @@ function App() {
   }, []);
 
   const initializeApp = () => {
-    const savedTheme = localStorage.getItem('etcp-theme') || 'eco-modern';
+    const savedTheme = localStorage.getItem('etcp-theme') || 'eco-green';
     const token = localStorage.getItem('token');
     const savedUser = localStorage.getItem('user');
     const savedUserType = localStorage.getItem('userType');

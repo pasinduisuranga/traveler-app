@@ -12,15 +12,13 @@ import MyJourneys from './components/journeys/MyJourneys';
 import PlanTrip from './components/planning/PlanTrip';
 import Community from './components/community/Community';
 import Profile from './components/profile/Profile';
-import Login from './components/auth/Login-New';
-import Register from './components/auth/Register-New';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
 
 // Provider Components
-import ProviderDashboard from './components/provider/ProviderDashboard-New';
-import ExperienceManager from './components/provider/ExperienceManager';
-import BookingManager from './components/provider/BookingManager';
-import AnalyticsHub from './components/provider/AnalyticsHub';
-import MessagingCenter from './components/provider/MessagingCenter-New';
+import ProviderDashboard from './components/provider/ProviderDashboard';
+import AdvancedAnalytics from './components/provider/AdvancedAnalytics';
+import MessagingCenter from './components/provider/MessagingCenter';
 
 function App() {
   const [theme, setTheme] = useState('eco-modern');
@@ -174,19 +172,9 @@ function App() {
               <AppLayout><ProviderDashboard /></AppLayout>
             </ProtectedRoute>
           } />
-          <Route path="/provider/experiences" element={
-            <ProtectedRoute>
-              <AppLayout><ExperienceManager /></AppLayout>
-            </ProtectedRoute>
-          } />
-          <Route path="/provider/bookings" element={
-            <ProtectedRoute>
-              <AppLayout><BookingManager /></AppLayout>
-            </ProtectedRoute>
-          } />
           <Route path="/provider/analytics" element={
             <ProtectedRoute>
-              <AppLayout><AnalyticsHub /></AppLayout>
+              <AppLayout><AdvancedAnalytics /></AppLayout>
             </ProtectedRoute>
           } />
           <Route path="/provider/messages" element={

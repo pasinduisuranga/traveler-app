@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from 'react-router-dom';
 import './App.css';
+import './App-New.css';
 import './components/components.css';
+import './components/components-new.css';
 import './components/provider/provider.css';
+
+// New Components
+import AppNew from './App-New';
+
+// Old Components
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import EcoDiscoveryHub from './components/EcoDiscoveryHub';
@@ -17,13 +24,23 @@ import PaymentManagement from './components/provider/PaymentManagement';
 import MessagingCenter from './components/provider/MessagingCenter';
 
 function App() {
-  const [theme, setTheme] = useState('eco-theme');
+  const [useNewInterface, setUseNewInterface] = useState(true); // Toggle for new interface
+  const [theme, setTheme] = useState('eco-modern');
   const [user, setUser] = useState(null);
   const [userType, setUserType] = useState('traveler'); // 'traveler' or 'provider'
 
+  // Show interface selector if not logged in and no selection made
+  const showInterfaceSelector = !user && useNewInterface === null;
+
   useEffect(() => {
     // Load user preferences
-    const savedTheme = localStorage.getItem('etcp-theme') || 'eco-theme';
+    const savedTheme = localStorage.getItem('etcp-theme') || theme;
+    const savedInterface = localStorage.getItem('interface-choice');
+    
+    if (savedInterface) {
+      setUseNewInterface(savedInterface === 'new');
+    }
+    
     setTheme(savedTheme);
     document.body.className = savedTheme;
     
@@ -38,6 +55,17 @@ function App() {
     }
   }, []);
 
+  const handleInterfaceChoice = (choice) => {
+    setUseNewInterface(choice === 'new');
+    localStorage.setItem('interface-choice', choice);
+  };
+
+  // If new interface is selected, render the new App
+  if (useNewInterface) {
+    return <AppNew />;
+  }
+
+  // Original interface below
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

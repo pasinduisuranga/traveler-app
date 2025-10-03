@@ -1,0 +1,713 @@
+/* Provider-specific styles */
+
+/* Provider Dashboard */
+.provider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 2rem;
+  background: var(--card-background);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.provider-info h1 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-color);
+  font-size: 2rem;
+}
+
+.provider-badges {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.badge.verified {
+  background: var(--accent-color);
+  color: white;
+}
+
+.badge.sustainability {
+  background: #4caf50;
+  color: white;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Analytics Overview */
+.analytics-overview {
+  margin-bottom: 3rem;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.analytics-card {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.analytics-card h3 {
+  margin: 0;
+  font-size: 2.5rem;
+  color: var(--primary-color);
+}
+
+.analytics-card p {
+  margin: 0.5rem 0;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.growth {
+  font-size: 0.9rem;
+  font-weight: bold;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.growth.positive {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.rating-stars {
+  color: #ffa726;
+}
+
+.status-indicator {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.status-indicator.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+/* Section Styling */
+.section {
+  margin-bottom: 3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  margin: 0;
+  color: var(--primary-color);
+}
+
+/* Bookings Table */
+.bookings-table {
+  background: var(--card-background);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--background-color);
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.status.confirmed {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status.rejected {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.booking-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn.confirm {
+  background: #4caf50;
+  color: white;
+}
+
+.action-btn.reject {
+  background: #f44336;
+  color: white;
+}
+
+.action-btn.view {
+  background: var(--secondary-color);
+  color: white;
+}
+
+/* Experience Management */
+.experiences-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.experience-card .experience-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.experience-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.status-select {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.status-select.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-select.draft {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.status-select.paused {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.experience-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.experience-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.last-updated {
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.6;
+  text-align: center;
+}
+
+/* Sustainability Metrics */
+.sustainability-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.sustainability-card {
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.sustainability-card h3 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-color);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-color);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.sustainability-card p {
+  margin: 0;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+/* Experience Form */
+.experience-form-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.form-header h2 {
+  margin: 0;
+  color: var(--primary-color);
+}
+
+.close-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+}
+
+.experience-form {
+  background: var(--card-background);
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.form-section h3 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* List Input Component */
+.list-input {
+  margin-top: 1rem;
+}
+
+.add-item {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.add-item input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.add-btn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--background-color);
+  border-radius: 4px;
+}
+
+.remove-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Provider Registration */
+.provider-registration {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.registration-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.registration-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-color);
+  font-size: 2.5rem;
+}
+
+.registration-header p {
+  margin: 0 0 2rem 0;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+/* Progress Bar */
+.progress-bar {
+  margin: 2rem 0;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.progress-step {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--border-color);
+  color: var(--text-color);
+  font-weight: bold;
+  position: relative;
+}
+
+.progress-step.completed {
+  background: var(--accent-color);
+  color: white;
+}
+
+.progress-step.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.progress-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: calc(100vw / 6 - 40px);
+  height: 2px;
+  background: var(--border-color);
+  transform: translateY(-50%);
+  z-index: -1;
+}
+
+.progress-step.completed:not(:last-child)::after {
+  background: var(--accent-color);
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.registration-form {
+  background: var(--card-background);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.registration-step h3 {
+  margin: 0 0 2rem 0;
+  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+/* Checkbox Grid */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--background-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.checkbox-item:hover {
+  background: var(--border-color);
+}
+
+.checkbox-item input[type="checkbox"] {
+  margin: 0;
+}
+
+/* Agreement Section */
+.agreement-section {
+  margin: 2rem 0;
+}
+
+.agreement-text {
+  background: var(--background-color);
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.agreement-text ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.agreement-text li {
+  margin-bottom: 0.5rem;
+}
+
+.agreement-checkbox {
+  padding: 1rem;
+  background: #e8f5e8;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.verification-notice {
+  background: #e3f2fd;
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-top: 2rem;
+}
+
+.verification-notice h4 {
+  margin: 0 0 1rem 0;
+  color: var(--primary-color);
+}
+
+/* Provider Navigation */
+.provider-navigation {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+}
+
+.provider-navigation .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  min-width: 100px;
+  text-decoration: none;
+  color: #636e72;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.provider-navigation .nav-item:hover {
+  background: #f8f9fa;
+  color: var(--primary-color);
+  transform: translateY(-2px);
+}
+
+.provider-navigation .nav-icon {
+  font-size: 1.5rem;
+}
+
+.form-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+  .provider-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .table-header,
+  .table-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .experiences-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .progress-steps {
+    display: none;
+  }
+  
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-navigation {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}

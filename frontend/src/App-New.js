@@ -30,18 +30,18 @@ function App() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [notifications, setNotifications] = useState([]);
 
+  useEffect(() => {
+    // Load user preferences and initialize app
+    initializeApp();
+    loadNotifications();
+  }, []);
+
   // Debug mode for Chrome troubleshooting
   const debugMode = window.location.search.includes('debug=true');
   
   if (debugMode) {
     return <ChromeDebug />;
   }
-
-  useEffect(() => {
-    // Load user preferences and initialize app
-    initializeApp();
-    loadNotifications();
-  }, []);
 
   const initializeApp = () => {
     const savedTheme = localStorage.getItem('etcp-theme') || 'eco-green';

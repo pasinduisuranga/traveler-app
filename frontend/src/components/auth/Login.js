@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { authAPI, apiUtils } from '../../services/api';
 import './auth.css';
 
 function Login() {
@@ -27,26 +27,48 @@ function Login() {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', {
+      const response = await authAPI.login({
         ...formData,
         userType
       });
 
-      // Save token and user data
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('userType', userType);
+      const result = apiUtils.formatResponse(response);
+      
+      if (result.success && result.data.token) {
+        // Save token and user data
+        localStorage.setItem('token', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+        localStorage.setItem('userType', userType);
 
-      // Redirect based on user type
-      if (userType === 'provider') {
-        navigate('/provider');
+        // Redirect based on user type
+        if (userType === 'provider') {
+          navigate('/provider/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
-        navigate('/discover');
+        setError(result.message || 'Login failed. Please try again.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(apiUtils.handleError(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fillDemoCredentials = (type) => {
+    if (type === 'traveler') {
+      setFormData({
+        email: 'traveler@demo.com',
+        password: 'demo123'
+      });
+      setUserType('traveler');
+    } else {
+      setFormData({
+        email: 'provider@demo.com',
+        password: 'demo123'
+      });
+      setUserType('provider');
     }
   };
 
@@ -121,10 +143,24 @@ function Login() {
           <div className="demo-section">
             <strong>Traveler:</strong>
             <p>Email: traveler@demo.com | Password: demo123</p>
+            <button 
+              type="button" 
+              className="demo-button"
+              onClick={() => fillDemoCredentials('traveler')}
+            >
+              Use Traveler Demo
+            </button>
           </div>
           <div className="demo-section">
             <strong>Provider:</strong>
             <p>Email: provider@demo.com | Password: demo123</p>
+            <button 
+              type="button" 
+              className="demo-button"
+              onClick={() => fillDemoCredentials('provider')}
+            >
+              Use Provider Demo
+            </button>
           </div>
         </div>
       </div>

@@ -6,9 +6,10 @@ const providers = new Map();
 
 // Initialize with demo users
 const bcrypt = require('bcryptjs');
+const config = require('./config/config');
 
 async function initializeMockDB() {
-  const hashedPassword = await bcrypt.hash('demo123', 12);
+  const hashedPassword = await bcrypt.hash('demo123', config.BCRYPT_ROUNDS);
   
   // Demo traveler
   const travelerId = 'traveler_001';
@@ -52,6 +53,9 @@ async function initializeMockDB() {
   });
 
   console.log('✅ Mock database initialized with demo users');
+  console.log('📧 Demo credentials:');
+  console.log('   Traveler: traveler@demo.com / demo123');
+  console.log('   Provider: provider@demo.com / demo123');
 }
 
 // Mock User Model
@@ -74,17 +78,21 @@ const MockUser = {
   },
 
   async create(userData) {
-    const hashedPassword = await bcrypt.hash(userData.password, 12);
+    const hashedPassword = await bcrypt.hash(userData.password, config.BCRYPT_ROUNDS);
     const userId = `${userData.userType}_${Date.now()}`;
     const user = {
       _id: userId,
       ...userData,
       password: hashedPassword,
       isVerified: false,
+      avatar: userData.avatar || 'https://via.placeholder.com/150',
       createdAt: new Date()
     };
     users.set(userData.email, user);
-    return user;
+    
+    // Return user without password for consistency
+    const { password, ...userWithoutPassword } = user;
+    return { ...userWithoutPassword, _id: userId };
   }
 };
 
@@ -103,6 +111,13 @@ const MockProvider = {
     };
     providers.set(provider.userId, provider);
     return provider;
+  },
+
+  async findOne(query) {
+    if (query.userId) {
+      return providers.get(query.userId) || null;
+    }
+    return null;
   }
 };
 

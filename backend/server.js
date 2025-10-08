@@ -1,15 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
-require('dotenv').config();
+const config = require('./config/config');
+
+// Import middleware
+const { generalLimiter, apiLimiter } = require('./middleware/rateLimiting');
+const { globalErrorHandler, notFound } = require('./middleware/errorHandler');
+const { protect, isProvider, isTraveler } = require('./middleware/auth');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
 
 // Check if we should use mock database
-const USE_MOCK_DB = process.env.USE_MOCK_DB === 'true' || !process.env.MONGODB_URI || process.env.MONGODB_URI === 'mongodb://localhost:27017/etcp';
+const USE_MOCK_DB = config.USE_MOCK_DB || !config.MONGODB_URI || config.MONGODB_URI === 'mongodb://localhost:27017/etcp';
 
 // MongoDB Connection or Mock DB
 const connectDB = async () => {
@@ -22,7 +25,7 @@ const connectDB = async () => {
     global.USE_MOCK_DB = true;
   } else {
     try {
-      const conn = await mongoose.connect(process.env.MONGODB_URI, {
+      const conn = await mongoose.connect(config.MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
       });
@@ -40,25 +43,39 @@ const connectDB = async () => {
 
 connectDB();
 
-// Security middleware
-app.use(helmet());
-app.use(cors());
-
 // Trust proxy for rate limiting
 app.set('trust proxy', 1);
 
+// Security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+}));
+
+// CORS configuration
+app.use(cors({
+  origin: config.CORS_ORIGIN,
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use(limiter);
+app.use(generalLimiter);
 
 // Body parsing middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Import Routes
 const authRoutes = require('./routes/auth');
@@ -66,10 +83,14 @@ const authRoutes = require('./routes/auth');
 // Routes
 app.use('/api/auth', authRoutes);
 
+// API Info endpoint
 app.get('/', (req, res) => {
   res.json({ 
+    success: true,
     message: 'ETCP Backend API is running!',
-    version: '1.0.0',
+    version: '2.0.0',
+    environment: config.NODE_ENV,
+    database: USE_MOCK_DB ? 'Mock Database' : 'MongoDB',
     endpoints: {
       auth: '/api/auth',
       experiences: '/api/experiences',
@@ -80,9 +101,27 @@ app.get('/', (req, res) => {
   });
 });
 
-// Experiences routes (Eco-Discovery Hub)
-app.get('/api/experiences', (req, res) => {
-  res.json([
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    success: true,
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Protected API Routes with rate limiting
+app.use('/api/experiences', apiLimiter);
+app.use('/api/bookings', apiLimiter);
+app.use('/api/users', apiLimiter);
+app.use('/api/providers', apiLimiter);
+
+// Experiences routes (Eco-Discovery Hub) - Protected
+app.get('/api/experiences', protect, (req, res) => {
+  const { location, type, maxPrice, minRating } = req.query;
+  
+  let experiences = [
     {
       id: 1,
       title: 'Sinharaja Rainforest Trek',
@@ -92,64 +131,260 @@ app.get('/api/experiences', (req, res) => {
       price: 85,
       description: 'Explore the pristine biodiversity of UNESCO World Heritage Sinharaja Forest',
       provider: 'Eco Adventures Lanka',
-      image: '/images/sinharaja.jpg'
+      image: '/images/sinharaja.jpg',
+      maxParticipants: 12,
+      duration: 8,
+      difficulty: 'moderate'
     },
     {
       id: 2,
       title: 'Whale Watching at Mirissa',
       location: 'Mirissa, Sri Lanka',
-      type: 'wildlife watching',
+      type: 'wildlife-watching',
       sustainabilityRating: 4.5,
       price: 120,
       description: 'Sustainable whale watching experience with blue whales and dolphins',
       provider: 'Ocean Conservation Tours',
-      image: '/images/whales.jpg'
+      image: '/images/whales.jpg',
+      maxParticipants: 20,
+      duration: 6,
+      difficulty: 'easy'
+    },
+    {
+      id: 3,
+      title: 'Mangrove Conservation Project',
+      location: 'Bentota, Sri Lanka',
+      type: 'conservation',
+      sustainabilityRating: 4.9,
+      price: 65,
+      description: 'Participate in mangrove restoration and learn about coastal ecosystems',
+      provider: 'Marine Conservation Lanka',
+      image: '/images/mangroves.jpg',
+      maxParticipants: 15,
+      duration: 4,
+      difficulty: 'easy'
     }
-  ]);
+  ];
+
+  // Apply filters
+  if (location) {
+    experiences = experiences.filter(exp => 
+      exp.location.toLowerCase().includes(location.toLowerCase())
+    );
+  }
+  
+  if (type) {
+    experiences = experiences.filter(exp => exp.type === type);
+  }
+  
+  if (maxPrice) {
+    experiences = experiences.filter(exp => exp.price <= parseInt(maxPrice));
+  }
+  
+  if (minRating) {
+    experiences = experiences.filter(exp => exp.sustainabilityRating >= parseFloat(minRating));
+  }
+
+  res.json({
+    success: true,
+    count: experiences.length,
+    data: experiences
+  });
 });
 
-// Bookings routes (Eco-Journeys)
-app.get('/api/bookings', (req, res) => {
-  res.json([
+app.get('/api/experiences/:id', protect, (req, res) => {
+  const { id } = req.params;
+  
+  // Mock experience details
+  const experience = {
+    id: parseInt(id),
+    title: 'Sinharaja Rainforest Trek',
+    location: 'Sinharaja Forest Reserve, Sri Lanka',
+    type: 'hiking',
+    sustainabilityRating: 4.8,
+    price: 85,
+    description: 'Explore the pristine biodiversity of UNESCO World Heritage Sinharaja Forest Reserve. This guided trek takes you through one of Sri Lanka\'s last remaining rainforests, home to endemic species and pristine ecosystems.',
+    provider: 'Eco Adventures Lanka',
+    providerId: 1,
+    image: '/images/sinharaja.jpg',
+    gallery: ['/images/sinharaja1.jpg', '/images/sinharaja2.jpg'],
+    maxParticipants: 12,
+    duration: 8,
+    difficulty: 'moderate',
+    included: ['Expert guide', 'Lunch', 'Transportation', 'Entry fees'],
+    notIncluded: ['Personal gear', 'Insurance'],
+    sustainabilityFeatures: [
+      'Local community employment',
+      'Conservation fund contribution',
+      'Zero plastic policy',
+      'Carbon offset program'
+    ],
+    availableDates: ['2025-10-15', '2025-10-22', '2025-10-29'],
+    reviews: [
+      {
+        id: 1,
+        userName: 'Sarah J.',
+        rating: 5,
+        comment: 'Amazing experience! Learned so much about biodiversity.',
+        date: '2025-09-20'
+      }
+    ]
+  };
+
+  res.json({
+    success: true,
+    data: experience
+  });
+});
+
+// Bookings routes (Eco-Journeys) - Protected
+app.get('/api/bookings', protect, (req, res) => {
+  const userId = req.user.id;
+  
+  const bookings = [
     {
       id: 1,
       experienceId: 1,
-      userId: 1,
+      experienceTitle: 'Sinharaja Rainforest Trek',
+      userId: userId,
       date: '2025-10-15',
       status: 'confirmed',
-      participants: 2
+      participants: 2,
+      totalAmount: 170,
+      bookingDate: '2025-09-20',
+      provider: 'Eco Adventures Lanka'
+    },
+    {
+      id: 2,
+      experienceId: 2,
+      experienceTitle: 'Whale Watching at Mirissa',
+      userId: userId,
+      date: '2025-10-22',
+      status: 'pending',
+      participants: 1,
+      totalAmount: 120,
+      bookingDate: '2025-09-21',
+      provider: 'Ocean Conservation Tours'
     }
-  ]);
+  ];
+
+  res.json({
+    success: true,
+    count: bookings.length,
+    data: bookings
+  });
 });
 
-app.post('/api/bookings', (req, res) => {
-  const { experienceId, date, participants } = req.body;
-  res.json({
+app.post('/api/bookings', protect, (req, res) => {
+  const { experienceId, date, participants, specialRequests } = req.body;
+  const userId = req.user.id;
+
+  // Basic validation
+  if (!experienceId || !date || !participants) {
+    return res.status(400).json({
+      success: false,
+      message: 'Experience ID, date, and participants are required'
+    });
+  }
+
+  if (participants < 1 || participants > 20) {
+    return res.status(400).json({
+      success: false,
+      message: 'Participants must be between 1 and 20'
+    });
+  }
+
+  const booking = {
     id: Date.now(),
-    experienceId,
+    experienceId: parseInt(experienceId),
+    userId,
     date,
-    participants,
-    status: 'confirmed',
+    participants: parseInt(participants),
+    specialRequests,
+    status: 'pending',
+    totalAmount: 85 * participants, // Mock calculation
+    bookingDate: new Date().toISOString(),
+    confirmationCode: `ETCP-${Date.now()}`
+  };
+
+  res.status(201).json({
+    success: true,
+    data: booking,
     message: 'Booking created successfully'
   });
 });
 
-// Users routes
-app.get('/api/users/profile', (req, res) => {
+// Update booking status
+app.patch('/api/bookings/:id', protect, (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  
+  const validStatuses = ['pending', 'confirmed', 'cancelled', 'completed'];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid status'
+    });
+  }
+
   res.json({
-    id: 1,
-    name: 'Eco Traveler',
-    email: 'traveler@etcp.com',
-    preferences: {
-      theme: 'forest',
-      language: 'en'
+    success: true,
+    data: {
+      id: parseInt(id),
+      status,
+      updatedAt: new Date().toISOString()
+    },
+    message: 'Booking updated successfully'
+  });
+});
+
+// Users routes - Protected
+app.get('/api/users/profile', protect, (req, res) => {
+  res.json({
+    success: true,
+    data: {
+      id: req.user.id || req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      userType: req.user.userType,
+      avatar: req.user.avatar,
+      phone: req.user.phone,
+      country: req.user.country,
+      preferences: {
+        theme: 'forest',
+        language: 'en',
+        notifications: true
+      },
+      stats: {
+        totalBookings: 5,
+        completedExperiences: 3,
+        totalSpent: 425,
+        carbonOffset: 12.5
+      }
     }
   });
 });
 
-// Providers routes (Eco-Explorer Network)
+app.put('/api/users/profile', protect, (req, res) => {
+  const { name, phone, country, preferences } = req.body;
+  
+  res.json({
+    success: true,
+    data: {
+      id: req.user.id || req.user._id,
+      name: name || req.user.name,
+      phone: phone || req.user.phone,
+      country: country || req.user.country,
+      preferences: preferences || req.user.preferences,
+      updatedAt: new Date().toISOString()
+    },
+    message: 'Profile updated successfully'
+  });
+});
+
+// Providers routes (Eco-Explorer Network) - Some protected, some public
 app.get('/api/providers', (req, res) => {
-  res.json([
+  const providers = [
     {
       id: 1,
       name: 'Eco Adventures Lanka',
@@ -161,7 +396,8 @@ app.get('/api/providers', (req, res) => {
       totalBookings: 42,
       averageRating: 4.6,
       description: 'Leading eco-tourism provider in Sri Lanka, specializing in sustainable wildlife and nature experiences.',
-      certifications: ['Green Tourism Certified', 'Wildlife Conservation Partner']
+      certifications: ['Green Tourism Certified', 'Wildlife Conservation Partner'],
+      specialties: ['Wildlife Tours', 'Forest Treks', 'Conservation Projects']
     },
     {
       id: 2,
@@ -174,336 +410,98 @@ app.get('/api/providers', (req, res) => {
       totalBookings: 28,
       averageRating: 4.4,
       description: 'Marine conservation focused tours with educational components.',
-      certifications: ['Marine Conservation Certified', 'Blue Flag Partner']
+      certifications: ['Marine Conservation Certified', 'Blue Flag Partner'],
+      specialties: ['Whale Watching', 'Marine Conservation', 'Snorkeling']
     }
-  ]);
-});
+  ];
 
-app.post('/api/providers/register', (req, res) => {
-  const { businessName, email, businessType } = req.body;
   res.json({
-    id: Date.now(),
-    message: 'Provider registration submitted successfully',
-    applicationId: `APP-${Date.now()}`,
-    status: 'pending_review',
-    businessName,
-    email,
-    businessType,
-    submittedAt: new Date().toISOString()
+    success: true,
+    count: providers.length,
+    data: providers
   });
 });
 
-app.get('/api/providers/:id/dashboard', (req, res) => {
+app.post('/api/providers/register', protect, isProvider, (req, res) => {
+  const { businessName, businessType, description, location } = req.body;
+  
+  if (!businessName || !businessType) {
+    return res.status(400).json({
+      success: false,
+      message: 'Business name and type are required'
+    });
+  }
+
+  res.status(201).json({
+    success: true,
+    data: {
+      id: Date.now(),
+      businessName,
+      businessType,
+      description,
+      location,
+      userId: req.user.id,
+      status: 'pending_review',
+      applicationId: `APP-${Date.now()}`,
+      submittedAt: new Date().toISOString()
+    },
+    message: 'Provider registration submitted successfully'
+  });
+});
+
+// Provider Dashboard - Protected and Provider only
+app.get('/api/providers/:id/dashboard', protect, isProvider, (req, res) => {
   const { id } = req.params;
+  
   res.json({
-    provider: {
-      id: parseInt(id),
-      name: 'Eco Adventures Lanka',
-      email: 'info@ecoadventureslanka.com',
-      verified: true,
-      sustainabilityScore: 4.8
-    },
-    analytics: {
-      totalBookings: 42,
-      totalRevenue: 3840,
-      averageRating: 4.6,
-      activeExperiences: 2,
-      monthlyBookings: [5, 8, 12, 15, 18, 22, 25, 28, 32, 38, 42],
-      revenueGrowth: 23.5
-    },
-    recentBookings: [
-      {
-        id: 1,
-        experienceTitle: 'Sinharaja Rainforest Trek',
-        customerName: 'John Doe',
-        date: '2025-09-25',
-        participants: 2,
-        totalAmount: 170,
-        status: 'confirmed'
-      }
-    ]
-  });
-});
-
-app.get('/api/providers/:id/experiences', (req, res) => {
-  const { id } = req.params;
-  res.json([
-    {
-      id: 1,
-      title: 'Sinharaja Rainforest Trek',
-      status: 'active',
-      price: 85,
-      bookings: 24,
-      rating: 4.8,
-      sustainabilityRating: 4.9,
-      lastUpdated: '2025-09-15',
-      providerId: parseInt(id)
-    },
-    {
-      id: 2,
-      title: 'Whale Watching at Mirissa',
-      status: 'active',
-      price: 120,
-      bookings: 18,
-      rating: 4.5,
-      sustainabilityRating: 4.6,
-      lastUpdated: '2025-09-10',
-      providerId: parseInt(id)
+    success: true,
+    data: {
+      provider: {
+        id: parseInt(id),
+        name: 'Eco Adventures Lanka',
+        email: 'info@ecoadventureslanka.com',
+        verified: true,
+        sustainabilityScore: 4.8
+      },
+      analytics: {
+        totalBookings: 42,
+        totalRevenue: 3840,
+        averageRating: 4.6,
+        activeExperiences: 2,
+        monthlyBookings: [5, 8, 12, 15, 18, 22, 25, 28, 32, 38, 42],
+        revenueGrowth: 23.5,
+        conversionRate: 15.2,
+        repeatCustomers: 28
+      },
+      recentBookings: [
+        {
+          id: 1,
+          experienceTitle: 'Sinharaja Rainforest Trek',
+          customerName: 'John Doe',
+          date: '2025-09-25',
+          participants: 2,
+          totalAmount: 170,
+          status: 'confirmed'
+        }
+      ]
     }
-  ]);
-});
-
-app.post('/api/providers/:id/experiences', (req, res) => {
-  const { id } = req.params;
-  const experienceData = req.body;
-  res.json({
-    id: Date.now(),
-    ...experienceData,
-    providerId: parseInt(id),
-    status: 'draft',
-    createdAt: new Date().toISOString(),
-    message: 'Experience created successfully'
   });
 });
 
-app.put('/api/providers/:providerId/experiences/:experienceId', (req, res) => {
-  const { providerId, experienceId } = req.params;
-  const updateData = req.body;
-  res.json({
-    id: parseInt(experienceId),
-    providerId: parseInt(providerId),
-    ...updateData,
-    updatedAt: new Date().toISOString(),
-    message: 'Experience updated successfully'
-  });
-});
+// Error handling - Must be last
+app.use(notFound);
+app.use(globalErrorHandler);
 
-// Reviews routes
-app.get('/api/providers/:id/reviews', (req, res) => {
-  const { id } = req.params;
-  res.json([
-    {
-      id: 1,
-      customerName: 'Sarah Johnson',
-      experienceTitle: 'Sinharaja Rainforest Trek',
-      rating: 5,
-      comment: 'Absolutely amazing experience! The guide was knowledgeable and the sustainability practices were evident throughout.',
-      date: '2025-09-15',
-      responded: true,
-      response: 'Thank you for your wonderful feedback! We\'re glad you enjoyed the experience.',
-      responseDate: '2025-09-16',
-      photos: 2,
-      helpful: 12
-    },
-    {
-      id: 2,
-      customerName: 'John Smith',
-      experienceTitle: 'Whale Watching at Mirissa',
-      rating: 4,
-      comment: 'Great tour! Saw multiple whales. Only minor issue was the early morning start time.',
-      date: '2025-09-10',
-      responded: false,
-      photos: 5,
-      helpful: 8
-    }
-  ]);
-});
+// Error handling - Must be last
+app.use(notFound);
+app.use(globalErrorHandler);
 
-app.get('/api/providers/:id/reviews/statistics', (req, res) => {
-  res.json({
-    averageRating: 4.5,
-    totalReviews: 48,
-    ratingDistribution: { 5: 28, 4: 12, 3: 6, 2: 1, 1: 1 },
-    responseRate: 75
-  });
-});
-
-app.post('/api/providers/:id/reviews/:reviewId/reply', (req, res) => {
-  const { id, reviewId } = req.params;
-  const { response } = req.body;
-  res.json({
-    reviewId: parseInt(reviewId),
-    providerId: parseInt(id),
-    response,
-    responseDate: new Date().toISOString(),
-    message: 'Reply posted successfully'
-  });
-});
-
-// Analytics routes
-app.get('/api/providers/:id/analytics', (req, res) => {
-  const { range } = req.query;
-  res.json({
-    bookingTrends: [12, 19, 15, 25, 22, 30, 28, 35, 32, 40, 38, 42],
-    revenueData: [1020, 1615, 1275, 2125, 1870, 2550, 2380, 2975, 2720, 3400, 3230, 3570],
-    experiencePerformance: [
-      { name: 'Sinharaja Trek', bookings: 24, revenue: 2040, rating: 4.8 },
-      { name: 'Whale Watching', bookings: 18, revenue: 2160, rating: 4.5 }
-    ],
-    customerDemographics: {
-      ageGroups: { '18-25': 15, '26-35': 35, '36-45': 25, '46-55': 15, '56+': 10 },
-      countries: { 'USA': 30, 'UK': 20, 'Germany': 15, 'Australia': 12, 'Others': 23 },
-      groupTypes: { 'Solo': 25, 'Couple': 35, 'Family': 20, 'Group': 20 }
-    },
-    sustainabilityMetrics: {
-      carbonOffset: 156.5,
-      localEconomyContribution: 3240,
-      conservationDonations: 648,
-      travelersEducated: 156,
-      plasticEliminated: 234
-    },
-    topExperiences: [
-      { id: 1, title: 'Sinharaja Trek', bookings: 24, growth: 15 },
-      { id: 2, title: 'Whale Watching', bookings: 18, growth: 8 }
-    ]
-  });
-});
-
-// Payment routes
-app.get('/api/providers/:id/payments', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      bookingId: 'BK-1001',
-      experienceTitle: 'Sinharaja Rainforest Trek',
-      amount: 170,
-      commission: 25.5,
-      netAmount: 144.5,
-      status: 'completed',
-      paymentDate: '2025-09-20',
-      customerName: 'John Doe',
-      paymentMethod: 'Credit Card'
-    },
-    {
-      id: 2,
-      bookingId: 'BK-1002',
-      experienceTitle: 'Whale Watching at Mirissa',
-      amount: 120,
-      commission: 18,
-      netAmount: 102,
-      status: 'completed',
-      paymentDate: '2025-09-18',
-      customerName: 'Sarah Smith',
-      paymentMethod: 'PayPal'
-    }
-  ]);
-});
-
-app.get('/api/providers/:id/payment-methods', (req, res) => {
-  res.json([
-    { id: 1, type: 'bank', name: 'Bank of Ceylon', last4: '4567', primary: true },
-    { id: 2, type: 'paypal', name: 'PayPal', email: 'provider@email.com', primary: false }
-  ]);
-});
-
-app.get('/api/providers/:id/payout-settings', (req, res) => {
-  res.json({
-    bankName: 'Bank of Ceylon',
-    accountNumber: '**** **** **** 4567',
-    accountHolder: 'Eco Adventures Lanka',
-    swiftCode: 'BCEYLKLX',
-    payoutSchedule: 'weekly'
-  });
-});
-
-app.put('/api/providers/:id/payout-settings', (req, res) => {
-  const updateData = req.body;
-  res.json({
-    ...updateData,
-    message: 'Payout settings updated successfully'
-  });
-});
-
-app.get('/api/providers/:id/financial-summary', (req, res) => {
-  res.json({
-    availableBalance: 1250.75,
-    pendingBalance: 318.75,
-    totalEarnings: 12840.50,
-    nextPayout: '2025-09-27',
-    payoutAmount: 1250.75
-  });
-});
-
-app.post('/api/providers/:id/request-payout', (req, res) => {
-  res.json({
-    message: 'Payout request submitted successfully',
-    requestId: `PAYOUT-${Date.now()}`,
-    amount: 1250.75,
-    estimatedArrival: '2025-09-30'
-  });
-});
-
-// Messaging routes
-app.get('/api/providers/:id/conversations', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      customerName: 'Sarah Johnson',
-      experienceTitle: 'Sinharaja Rainforest Trek',
-      lastMessage: 'Is equipment provided for the trek?',
-      lastMessageTime: '2025-09-19 10:30',
-      unread: 2,
-      status: 'active',
-      bookingId: 'BK-1001'
-    },
-    {
-      id: 2,
-      customerName: 'Mike Williams',
-      experienceTitle: 'Whale Watching at Mirissa',
-      lastMessage: 'Thank you for the wonderful experience!',
-      lastMessageTime: '2025-09-18 14:20',
-      unread: 0,
-      status: 'completed',
-      bookingId: 'BK-1002'
-    }
-  ]);
-});
-
-app.get('/api/providers/:id/conversations/:conversationId/messages', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      senderId: 'customer',
-      senderName: 'Sarah Johnson',
-      text: 'Hi! I\'m interested in the Sinharaja Rainforest Trek.',
-      timestamp: '2025-09-19 09:00',
-      read: true
-    },
-    {
-      id: 2,
-      senderId: 'provider',
-      senderName: 'Eco Adventures Lanka',
-      text: 'Hello! We\'d be happy to help you with booking.',
-      timestamp: '2025-09-19 09:15',
-      read: true
-    }
-  ]);
-});
-
-app.post('/api/providers/:id/conversations/:conversationId/messages', (req, res) => {
-  const { text } = req.body;
-  res.json({
-    id: Date.now(),
-    senderId: 'provider',
-    text,
-    timestamp: new Date().toISOString(),
-    message: 'Message sent successfully'
-  });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
-
+// Start server
+const PORT = config.PORT;
 app.listen(PORT, () => {
-  console.log(`ETCP Backend server running on port ${PORT}`);
+  console.log(`🚀 ETCP Backend server running on port ${PORT}`);
+  console.log(`📖 Environment: ${config.NODE_ENV}`);
+  console.log(`🔒 CORS Origin: ${config.CORS_ORIGIN}`);
 });
 
 module.exports = app;

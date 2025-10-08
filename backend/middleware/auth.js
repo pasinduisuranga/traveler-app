@@ -1,5 +1,16 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const config = require('../config/config');
+
+// Function to get User model (supports mock DB)
+const getUser = () => {
+  if (global.USE_MOCK_DB) {
+    const { MockUser } = require('../mockDatabase');
+    return MockUser;
+  } else {
+    const User = require('../models/User');
+    return User;
+  }
+};
 
 const protect = async (req, res, next) => {
   let token;
@@ -10,24 +21,40 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
 
       // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      const decoded = jwt.verify(token, config.JWT_SECRET);
 
       // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
+      const User = getUser();
+      req.user = await User.findById(decoded.id);
 
       if (!req.user) {
-        return res.status(401).json({ message: 'User not found' });
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found' 
+        });
       }
 
       next();
     } catch (error) {
       console.error('Auth middleware error:', error);
-      res.status(401).json({ message: 'Not authorized, token failed' });
+      
+      let message = 'Not authorized, token failed';
+      if (error.name === 'TokenExpiredError') {
+        message = 'Token has expired';
+      } else if (error.name === 'JsonWebTokenError') {
+        message = 'Invalid token';
+      }
+      
+      res.status(401).json({ 
+        success: false,
+        message 
+      });
     }
-  }
-
-  if (!token) {
-    res.status(401).json({ message: 'Not authorized, no token' });
+  } else {
+    res.status(401).json({ 
+      success: false,
+      message: 'Not authorized, no token provided' 
+    });
   }
 };
 
@@ -36,7 +63,10 @@ const isProvider = (req, res, next) => {
   if (req.user && req.user.userType === 'provider') {
     next();
   } else {
-    res.status(403).json({ message: 'Access denied. Provider account required.' });
+    res.status(403).json({ 
+      success: false,
+      message: 'Access denied. Provider account required.' 
+    });
   }
 };
 
@@ -45,7 +75,10 @@ const isTraveler = (req, res, next) => {
   if (req.user && req.user.userType === 'traveler') {
     next();
   } else {
-    res.status(403).json({ message: 'Access denied. Traveler account required.' });
+    res.status(403).json({ 
+      success: false,
+      message: 'Access denied. Traveler account required.' 
+    });
   }
 };
 

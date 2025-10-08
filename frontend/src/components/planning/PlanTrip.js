@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const PlanTrip = () => {
   const [activeStep, setActiveStep] = useState(1);
@@ -130,9 +130,9 @@ const PlanTrip = () => {
     });
   }, [tripPlan.experiences, tripPlan.travelers]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     calculateImpact();
-  }, [tripPlan.experiences, tripPlan.travelers, calculateImpact]);
+  }, [calculateImpact]);
 
   const canProceed = (step) => {
     switch (step) {

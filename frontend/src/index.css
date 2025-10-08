@@ -1,3 +1,5 @@
+@import './styles/colors.css';
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,8 +7,10 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-hero);
   min-height: 100vh;
+  color: var(--text-primary);
+  line-height: 1.6;
 }
 
 code {
@@ -14,32 +18,44 @@ code {
     monospace;
 }
 
-.eco-theme {
-  --primary-color: #2d5a27;
-  --secondary-color: #5a8f4e;
-  --accent-color: #8bc34a;
-  --text-color: #333;
-  --background-color: #f8f9fa;
-  --card-background: #ffffff;
-  --border-color: #e9ecef;
+/* Global Utility Classes */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-muted { color: var(--text-muted); }
+.text-white { color: var(--text-white); }
+
+.bg-primary { background-color: var(--bg-primary); }
+.bg-secondary { background-color: var(--bg-secondary); }
+.bg-muted { background-color: var(--bg-muted); }
+
+.border-light { border-color: var(--border-light); }
+.border-medium { border-color: var(--border-medium); }
+.border-dark { border-color: var(--border-dark); }
+
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-xl { box-shadow: var(--shadow-xl); }
+
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-xl { border-radius: var(--radius-xl); }
+
+.transition { transition: var(--transition-normal); }
+
+/* Modern Theme Classes */
+.eco-green {
+  --color-primary: var(--primary-600);
+  --gradient-hero: var(--gradient-forest);
 }
 
-.forest-theme {
-  --primary-color: #1a4d3a;
-  --secondary-color: #2e7d5f;
-  --accent-color: #4caf50;
-  --text-color: #2c3e50;
-  --background-color: #f1f8e9;
-  --card-background: #ffffff;
-  --border-color: #c8e6c9;
+.ocean-blue {
+  --color-primary: var(--secondary-600);
+  --gradient-hero: var(--gradient-ocean);
 }
 
-.ocean-theme {
-  --primary-color: #0d47a1;
-  --secondary-color: #1976d2;
-  --accent-color: #03a9f4;
-  --text-color: #263238;
-  --background-color: #e3f2fd;
-  --card-background: #ffffff;
-  --border-color: #bbdefb;
+.sunset-orange {
+  --color-primary: var(--accent-600);
+  --gradient-hero: var(--gradient-sunset);
 }

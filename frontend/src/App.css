@@ -4,7 +4,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg-app);
+  background: #ffffff;
 }
 
 .app-header {
@@ -126,7 +126,7 @@
 
 .main-content {
   flex: 1;
-  background: var(--bg-app);
+  background: #ffffff;
   padding: 2rem 0;
 }
 
